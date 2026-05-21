@@ -1,0 +1,1372 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>圖片轉檔器 | DDS PNG TGA</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --panel-2: #eef2f8;
+      --text: #172033;
+      --muted: #69748a;
+      --border: #d9e0ec;
+      --accent: #0f766e;
+      --accent-2: #164e63;
+      --danger: #b42318;
+      --shadow: 0 18px 50px rgba(23, 32, 51, 0.12);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      letter-spacing: 0;
+    }
+
+    body {
+      padding: 28px;
+    }
+
+    button, input, select {
+      font: inherit;
+    }
+
+    .app {
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 22px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(30px, 4vw, 48px);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 0;
+      max-width: 720px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(86px, 1fr));
+      gap: 8px;
+      min-width: 280px;
+    }
+
+    .stat {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: 0 8px 24px rgba(23, 32, 51, 0.06);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 22px;
+      line-height: 1;
+      color: var(--accent-2);
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .dropzone {
+      min-height: 280px;
+      display: grid;
+      place-items: center;
+      padding: 36px;
+      border: 2px dashed #aeb9ca;
+      border-radius: var(--radius);
+      background:
+        linear-gradient(135deg, rgba(15, 118, 110, 0.08), transparent 42%),
+        linear-gradient(315deg, rgba(22, 78, 99, 0.09), transparent 38%),
+        var(--panel);
+      transition: border-color 160ms ease, transform 160ms ease, background 160ms ease;
+    }
+
+    .dropzone.dragging {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      background:
+        linear-gradient(135deg, rgba(15, 118, 110, 0.14), transparent 44%),
+        linear-gradient(315deg, rgba(22, 78, 99, 0.12), transparent 38%),
+        var(--panel);
+    }
+
+    .drop-content {
+      max-width: 520px;
+      text-align: center;
+    }
+
+    .drop-icon {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 18px;
+      border-radius: 22px;
+      display: grid;
+      place-items: center;
+      background: #e1f3f0;
+      color: var(--accent);
+    }
+
+    .drop-icon svg {
+      width: 36px;
+      height: 36px;
+    }
+
+    .drop-title {
+      margin: 0 0 10px;
+      font-size: 24px;
+      line-height: 1.2;
+      font-weight: 760;
+    }
+
+    .drop-copy {
+      margin: 0 0 20px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .primary-button,
+    .secondary-button,
+    .icon-button {
+      border: 0;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: transform 130ms ease, box-shadow 130ms ease, background 130ms ease;
+    }
+
+    .primary-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 12px 16px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 720;
+      box-shadow: 0 10px 24px rgba(15, 118, 110, 0.24);
+    }
+
+    .secondary-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 13px;
+      background: var(--panel-2);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 680;
+      border: 1px solid var(--border);
+    }
+
+    .icon-button {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      background: #f1f5f9;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .primary-button:hover,
+    .secondary-button:hover,
+    .icon-button:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary-button:disabled,
+    .secondary-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .settings {
+      padding: 18px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .settings h2,
+    .queue h2 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.25;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    label {
+      color: #334155;
+      font-size: 13px;
+      font-weight: 740;
+    }
+
+    select,
+    input[type="number"],
+    input[type="range"] {
+      width: 100%;
+    }
+
+    select,
+    input[type="number"] {
+      min-height: 42px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--text);
+      padding: 0 12px;
+      outline: none;
+    }
+
+    input[type="range"] {
+      accent-color: var(--accent);
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 34px;
+      color: #334155;
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .check-row input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+
+    .hint {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .queue {
+      margin-top: 18px;
+      overflow: hidden;
+    }
+
+    .queue-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+      background: #fbfcfe;
+    }
+
+    .file-list {
+      display: grid;
+      gap: 0;
+    }
+
+    .empty {
+      padding: 36px 18px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .file-row {
+      display: grid;
+      grid-template-columns: 76px minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      background: #fff;
+    }
+
+    .file-row:last-child {
+      border-bottom: 0;
+    }
+
+    .thumb {
+      width: 76px;
+      aspect-ratio: 1 / 1;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: repeating-conic-gradient(#eef2f8 0 25%, #fff 0 50%) 50% / 18px 18px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 760;
+    }
+
+    .thumb img {
+      max-width: 100%;
+      max-height: 100%;
+      display: block;
+    }
+
+    .file-main {
+      min-width: 0;
+      display: grid;
+      gap: 7px;
+    }
+
+    .file-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 15px;
+      font-weight: 760;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #edf5f4;
+      color: var(--accent-2);
+      font-weight: 720;
+    }
+
+    .status {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .status.error {
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    .row-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      padding: 0 12px;
+      border-radius: var(--radius);
+      background: var(--accent-2);
+      color: #fff;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 760;
+    }
+
+    .progress {
+      height: 7px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      overflow: hidden;
+    }
+
+    .progress span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width 180ms ease;
+    }
+
+    .format-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .format-card {
+      padding: 10px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: #fbfcfe;
+    }
+
+    .format-card strong {
+      display: block;
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    .format-card span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 920px) {
+      body {
+        padding: 18px;
+      }
+
+      header,
+      .layout {
+        grid-template-columns: 1fr;
+        display: grid;
+      }
+
+      .stats {
+        min-width: 0;
+      }
+    }
+
+    @media (max-width: 620px) {
+      body {
+        padding: 12px;
+      }
+
+      .dropzone {
+        padding: 24px 16px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .file-row {
+        grid-template-columns: 62px minmax(0, 1fr);
+      }
+
+      .thumb {
+        width: 62px;
+      }
+
+      .row-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-end;
+      }
+
+      .format-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div>
+        <h1>圖片轉檔器</h1>
+        <p class="subtitle">拖放圖片後可在瀏覽器內轉成 PNG、JPG、WEBP、AVIF、BMP、TGA、DDS。支援一般瀏覽器可讀格式，並內建 TGA 與常見 DDS 解碼；檔案不會上傳。</p>
+      </div>
+      <section class="stats" aria-label="轉檔統計">
+        <div class="stat"><strong id="totalCount">0</strong><span>已加入</span></div>
+        <div class="stat"><strong id="doneCount">0</strong><span>已完成</span></div>
+        <div class="stat"><strong id="errorCount">0</strong><span>錯誤</span></div>
+      </section>
+    </header>
+
+    <section class="layout">
+      <div>
+        <section id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="選擇或拖放圖片">
+          <div class="drop-content">
+            <div class="drop-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3v12"></path>
+                <path d="m7 8 5-5 5 5"></path>
+                <path d="M4 15v3a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-3"></path>
+              </svg>
+            </div>
+            <p class="drop-title">拖放圖片到這裡</p>
+            <p class="drop-copy">可多選檔案。PNG、JPG、WEBP、GIF、BMP、SVG 由瀏覽器讀取；TGA 與 DDS 由本頁解析。</p>
+            <button id="pickButton" class="primary-button" type="button">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 7a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"></path>
+              </svg>
+              選擇圖片
+            </button>
+            <input id="fileInput" class="hidden" type="file" multiple accept="image/*,.tga,.dds">
+          </div>
+        </section>
+
+        <section class="queue panel" aria-live="polite">
+          <div class="queue-head">
+            <h2>轉檔清單</h2>
+            <button id="clearButton" class="secondary-button" type="button" disabled>清除清單</button>
+          </div>
+          <div id="fileList" class="file-list">
+            <div class="empty">尚未加入圖片。</div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="panel settings">
+        <h2>輸出設定</h2>
+        <div class="field">
+          <label for="formatSelect">輸出格式</label>
+          <select id="formatSelect">
+            <option value="png">PNG - 無損透明</option>
+            <option value="jpeg">JPG - 相片壓縮</option>
+            <option value="webp">WEBP - 高效率</option>
+            <option value="avif">AVIF - 高壓縮</option>
+            <option value="bmp">BMP - 無壓縮</option>
+            <option value="tga">TGA - 32-bit RGBA</option>
+            <option value="dds">DDS - RGBA8 未壓縮</option>
+          </select>
+        </div>
+
+        <div class="field" id="qualityField">
+          <label for="qualityRange">壓縮品質 <span id="qualityValue">92%</span></label>
+          <input id="qualityRange" type="range" min="1" max="100" value="92">
+          <p class="hint">JPG、WEBP、AVIF 會使用此品質；其他格式忽略。</p>
+        </div>
+
+        <label class="check-row">
+          <input id="transparentBg" type="checkbox" checked>
+          保留透明背景
+        </label>
+
+        <div class="field">
+          <label for="maxSize">最大邊長</label>
+          <input id="maxSize" type="number" min="0" step="1" value="0" inputmode="numeric">
+          <p class="hint">輸入 0 表示不縮放。轉 JPG 時若未保留透明，透明區會填白。</p>
+        </div>
+
+        <div class="actions">
+          <button id="convertButton" class="primary-button" type="button" disabled>全部轉檔</button>
+          <button id="downloadAllButton" class="secondary-button" type="button" disabled>下載全部</button>
+        </div>
+
+        <section>
+          <h2>格式支援</h2>
+          <div class="format-grid" aria-label="支援格式">
+            <div class="format-card"><strong>輸入</strong><span>PNG JPG WEBP GIF BMP SVG TGA DDS</span></div>
+            <div class="format-card"><strong>輸出</strong><span>PNG JPG WEBP AVIF BMP TGA DDS</span></div>
+            <div class="format-card"><strong>TGA</strong><span>支援灰階、16/24/32-bit、RLE</span></div>
+            <div class="format-card"><strong>DDS</strong><span>支援 RGBA8、DXT1、DXT3、DXT5 讀取；輸出 RGBA8</span></div>
+          </div>
+        </section>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const state = {
+      items: [],
+      nextId: 1
+    };
+
+    const els = {
+      dropzone: document.getElementById('dropzone'),
+      fileInput: document.getElementById('fileInput'),
+      pickButton: document.getElementById('pickButton'),
+      fileList: document.getElementById('fileList'),
+      clearButton: document.getElementById('clearButton'),
+      convertButton: document.getElementById('convertButton'),
+      downloadAllButton: document.getElementById('downloadAllButton'),
+      formatSelect: document.getElementById('formatSelect'),
+      qualityRange: document.getElementById('qualityRange'),
+      qualityValue: document.getElementById('qualityValue'),
+      transparentBg: document.getElementById('transparentBg'),
+      maxSize: document.getElementById('maxSize'),
+      totalCount: document.getElementById('totalCount'),
+      doneCount: document.getElementById('doneCount'),
+      errorCount: document.getElementById('errorCount')
+    };
+
+    const mimeByFormat = {
+      png: 'image/png',
+      jpeg: 'image/jpeg',
+      webp: 'image/webp',
+      avif: 'image/avif',
+      bmp: 'image/bmp',
+      tga: 'image/x-tga',
+      dds: 'image/vnd-ms.dds'
+    };
+
+    const extensionByFormat = {
+      png: 'png',
+      jpeg: 'jpg',
+      webp: 'webp',
+      avif: 'avif',
+      bmp: 'bmp',
+      tga: 'tga',
+      dds: 'dds'
+    };
+
+    els.pickButton.addEventListener('click', () => els.fileInput.click());
+    els.dropzone.addEventListener('click', event => {
+      if (event.target !== els.pickButton) els.fileInput.click();
+    });
+    els.dropzone.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        els.fileInput.click();
+      }
+    });
+    els.fileInput.addEventListener('change', event => {
+      addFiles([...event.target.files]);
+      els.fileInput.value = '';
+    });
+
+    ['dragenter', 'dragover'].forEach(name => {
+      els.dropzone.addEventListener(name, event => {
+        event.preventDefault();
+        els.dropzone.classList.add('dragging');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(name => {
+      els.dropzone.addEventListener(name, event => {
+        event.preventDefault();
+        els.dropzone.classList.remove('dragging');
+      });
+    });
+
+    els.dropzone.addEventListener('drop', event => {
+      addFiles([...event.dataTransfer.files]);
+    });
+
+    els.qualityRange.addEventListener('input', () => {
+      els.qualityValue.textContent = `${els.qualityRange.value}%`;
+    });
+
+    els.clearButton.addEventListener('click', () => {
+      state.items.forEach(revokeItemUrls);
+      state.items = [];
+      render();
+    });
+
+    els.convertButton.addEventListener('click', async () => {
+      await convertAll();
+    });
+
+    els.downloadAllButton.addEventListener('click', () => {
+      state.items.filter(item => item.outputUrl).forEach((item, index) => {
+        setTimeout(() => triggerDownload(item.outputUrl, item.outputName), index * 120);
+      });
+    });
+
+    function addFiles(files) {
+      const accepted = files.filter(file => {
+        const ext = getExtension(file.name);
+        return file.type.startsWith('image/') || ['tga', 'dds'].includes(ext);
+      });
+
+      accepted.forEach(file => {
+        state.items.push({
+          id: state.nextId++,
+          file,
+          name: file.name,
+          status: 'waiting',
+          message: '等待轉檔',
+          width: 0,
+          height: 0,
+          previewUrl: '',
+          outputUrl: '',
+          outputName: '',
+          outputSize: 0,
+          progress: 0
+        });
+      });
+
+      render();
+      accepted.forEach(file => {
+        const item = state.items.find(entry => entry.file === file);
+        loadPreview(item);
+      });
+    }
+
+    async function loadPreview(item) {
+      try {
+        item.status = 'loading';
+        item.message = '讀取圖片';
+        item.progress = 20;
+        render();
+
+        const image = await decodeFile(item.file);
+        item.width = image.width;
+        item.height = image.height;
+        item.previewUrl = canvasToPreviewUrl(image.canvas);
+        item.status = 'ready';
+        item.message = '可轉檔';
+        item.progress = 0;
+      } catch (error) {
+        item.status = 'error';
+        item.message = error.message || '讀取失敗';
+        item.progress = 0;
+      }
+      render();
+    }
+
+    async function convertAll() {
+      for (const item of state.items) {
+        if (item.status === 'error') continue;
+        await convertItem(item);
+      }
+      render();
+    }
+
+    async function convertItem(item) {
+      try {
+        revokeOutputUrl(item);
+        item.status = 'converting';
+        item.message = '轉檔中';
+        item.progress = 35;
+        render();
+
+        const decoded = await decodeFile(item.file);
+        item.progress = 60;
+        render();
+
+        const prepared = prepareCanvas(decoded.canvas);
+        const format = els.formatSelect.value;
+        const blob = await encodeCanvas(prepared, format);
+
+        item.outputUrl = URL.createObjectURL(blob);
+        item.outputName = buildOutputName(item.name, extensionByFormat[format]);
+        item.outputSize = blob.size;
+        item.status = 'done';
+        item.message = '完成';
+        item.progress = 100;
+      } catch (error) {
+        item.status = 'error';
+        item.message = error.message || '轉檔失敗';
+        item.progress = 0;
+      }
+      render();
+    }
+
+    async function decodeFile(file) {
+      const ext = getExtension(file.name);
+      const buffer = await file.arrayBuffer();
+
+      if (ext === 'tga') return decodeTga(buffer);
+      if (ext === 'dds') return decodeDds(buffer);
+
+      const blob = new Blob([buffer], { type: file.type || 'application/octet-stream' });
+      const bitmap = await createImageBitmap(blob);
+      const canvas = document.createElement('canvas');
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(bitmap, 0, 0);
+      bitmap.close();
+      return { canvas, width: canvas.width, height: canvas.height };
+    }
+
+    function prepareCanvas(source) {
+      const maxSide = Math.max(0, Number.parseInt(els.maxSize.value, 10) || 0);
+      let width = source.width;
+      let height = source.height;
+
+      if (maxSide > 0 && Math.max(width, height) > maxSide) {
+        const ratio = maxSide / Math.max(width, height);
+        width = Math.max(1, Math.round(width * ratio));
+        height = Math.max(1, Math.round(height * ratio));
+      }
+
+      const format = els.formatSelect.value;
+      const keepAlpha = els.transparentBg.checked && !['jpeg', 'bmp', 'dds'].includes(format);
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+      if (!keepAlpha) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, height);
+      }
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(source, 0, 0, width, height);
+      return canvas;
+    }
+
+    async function encodeCanvas(canvas, format) {
+      if (format === 'tga') {
+        return new Blob([encodeTga(canvas)], { type: mimeByFormat.tga });
+      }
+      if (format === 'dds') {
+        return new Blob([encodeDds(canvas)], { type: mimeByFormat.dds });
+      }
+      if (format === 'bmp') {
+        return new Blob([encodeBmp(canvas)], { type: mimeByFormat.bmp });
+      }
+
+      const quality = Number(els.qualityRange.value) / 100;
+      return new Promise((resolve, reject) => {
+        canvas.toBlob(blob => {
+          if (blob) resolve(blob);
+          else reject(new Error('此瀏覽器無法輸出該格式'));
+        }, mimeByFormat[format], quality);
+      });
+    }
+
+    function decodeTga(buffer) {
+      const view = new DataView(buffer);
+      const bytes = new Uint8Array(buffer);
+      if (bytes.length < 18) throw new Error('TGA 標頭不完整');
+
+      const idLength = bytes[0];
+      const colorMapType = bytes[1];
+      const imageType = bytes[2];
+      const colorMapLength = view.getUint16(5, true);
+      const colorMapDepth = bytes[7];
+      const width = view.getUint16(12, true);
+      const height = view.getUint16(14, true);
+      const pixelDepth = bytes[16];
+      const descriptor = bytes[17];
+
+      if (!width || !height) throw new Error('TGA 尺寸無效');
+      if (![1, 2, 3, 9, 10, 11].includes(imageType)) throw new Error('不支援此 TGA 類型');
+      if (![8, 16, 24, 32].includes(pixelDepth)) throw new Error('不支援此 TGA 位元深度');
+
+      let offset = 18 + idLength;
+      const palette = [];
+      if (colorMapType) {
+        const paletteBytes = Math.ceil(colorMapDepth / 8);
+        for (let i = 0; i < colorMapLength; i++) {
+          palette.push(readTgaColor(bytes, offset + i * paletteBytes, colorMapDepth));
+        }
+        offset += colorMapLength * paletteBytes;
+      }
+
+      const pixelCount = width * height;
+      const rgba = new Uint8ClampedArray(pixelCount * 4);
+      const topOrigin = Boolean(descriptor & 0x20);
+      const rightOrigin = Boolean(descriptor & 0x10);
+      const rle = [9, 10, 11].includes(imageType);
+      const bytesPerPixel = Math.ceil(pixelDepth / 8);
+      let written = 0;
+
+      const writePixel = color => {
+        const x = written % width;
+        const y = Math.floor(written / width);
+        const targetX = rightOrigin ? width - 1 - x : x;
+        const targetY = topOrigin ? y : height - 1 - y;
+        const index = (targetY * width + targetX) * 4;
+        rgba[index] = color[0];
+        rgba[index + 1] = color[1];
+        rgba[index + 2] = color[2];
+        rgba[index + 3] = color[3];
+        written++;
+      };
+
+      const readPixel = () => {
+        let color;
+        if (imageType === 1 || imageType === 9) {
+          const paletteIndex = pixelDepth === 8 ? bytes[offset] : bytes[offset] | (bytes[offset + 1] << 8);
+          color = palette[paletteIndex] || [0, 0, 0, 255];
+        } else if (imageType === 3 || imageType === 11) {
+          const gray = bytes[offset];
+          color = [gray, gray, gray, pixelDepth === 16 ? bytes[offset + 1] : 255];
+        } else {
+          color = readTgaColor(bytes, offset, pixelDepth);
+        }
+        offset += bytesPerPixel;
+        return color;
+      };
+
+      while (written < pixelCount) {
+        if (rle) {
+          const packet = bytes[offset++];
+          const count = (packet & 0x7f) + 1;
+          if (packet & 0x80) {
+            const color = readPixel();
+            for (let i = 0; i < count && written < pixelCount; i++) writePixel(color);
+          } else {
+            for (let i = 0; i < count && written < pixelCount; i++) writePixel(readPixel());
+          }
+        } else {
+          writePixel(readPixel());
+        }
+      }
+
+      return imageDataToCanvas(rgba, width, height);
+    }
+
+    function readTgaColor(bytes, offset, depth) {
+      if (depth === 16) {
+        const value = bytes[offset] | (bytes[offset + 1] << 8);
+        const b = (value & 0x1f) * 255 / 31;
+        const g = ((value >> 5) & 0x1f) * 255 / 31;
+        const r = ((value >> 10) & 0x1f) * 255 / 31;
+        const a = value & 0x8000 ? 255 : 255;
+        return [r, g, b, a].map(Math.round);
+      }
+      if (depth === 24 || depth === 32) {
+        return [bytes[offset + 2], bytes[offset + 1], bytes[offset], depth === 32 ? bytes[offset + 3] : 255];
+      }
+      if (depth === 8) {
+        return [bytes[offset], bytes[offset], bytes[offset], 255];
+      }
+      return [0, 0, 0, 255];
+    }
+
+    function encodeTga(canvas) {
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      const { width, height } = canvas;
+      const rgba = ctx.getImageData(0, 0, width, height).data;
+      const out = new Uint8Array(18 + width * height * 4);
+      const view = new DataView(out.buffer);
+      out[2] = 2;
+      view.setUint16(12, width, true);
+      view.setUint16(14, height, true);
+      out[16] = 32;
+      out[17] = 0x28;
+      let offset = 18;
+      for (let i = 0; i < rgba.length; i += 4) {
+        out[offset++] = rgba[i + 2];
+        out[offset++] = rgba[i + 1];
+        out[offset++] = rgba[i];
+        out[offset++] = rgba[i + 3];
+      }
+      return out.buffer;
+    }
+
+    function decodeDds(buffer) {
+      const bytes = new Uint8Array(buffer);
+      const view = new DataView(buffer);
+      if (bytes.length < 128 || view.getUint32(0, true) !== 0x20534444) {
+        throw new Error('不是有效的 DDS 檔案');
+      }
+
+      const height = view.getUint32(12, true);
+      const width = view.getUint32(16, true);
+      const pfFlags = view.getUint32(80, true);
+      const fourCC = view.getUint32(84, true);
+      const rgbBitCount = view.getUint32(88, true);
+      const rMask = view.getUint32(92, true);
+      const gMask = view.getUint32(96, true);
+      const bMask = view.getUint32(100, true);
+      const aMask = view.getUint32(104, true);
+
+      if (!width || !height) throw new Error('DDS 尺寸無效');
+
+      const rgba = new Uint8ClampedArray(width * height * 4);
+      if (pfFlags & 0x4) {
+        const code = fourCcToString(fourCC);
+        if (code === 'DXT1') decodeDxt(bytes, 128, width, height, rgba, 1);
+        else if (code === 'DXT3') decodeDxt(bytes, 128, width, height, rgba, 3);
+        else if (code === 'DXT5') decodeDxt(bytes, 128, width, height, rgba, 5);
+        else throw new Error(`不支援 DDS ${code || 'FourCC'} 壓縮`);
+      } else if (rgbBitCount === 32 || rgbBitCount === 24) {
+        decodeDdsRgb(bytes, 128, width, height, rgbBitCount, rMask, gMask, bMask, aMask, rgba);
+      } else {
+        throw new Error('只支援 RGBA/RGB 或 DXT1/DXT3/DXT5 DDS');
+      }
+
+      return imageDataToCanvas(rgba, width, height);
+    }
+
+    function decodeDdsRgb(bytes, offset, width, height, bits, rMask, gMask, bMask, aMask, rgba) {
+      const stride = bits / 8;
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          let value = 0;
+          for (let b = 0; b < stride; b++) value |= bytes[offset++] << (8 * b);
+          const index = (y * width + x) * 4;
+          rgba[index] = extractMasked(value, rMask);
+          rgba[index + 1] = extractMasked(value, gMask);
+          rgba[index + 2] = extractMasked(value, bMask);
+          rgba[index + 3] = aMask ? extractMasked(value, aMask) : 255;
+        }
+      }
+    }
+
+    function decodeDxt(bytes, offset, width, height, rgba, type) {
+      const blockBytes = type === 1 ? 8 : 16;
+      const blocksWide = Math.ceil(width / 4);
+      const blocksHigh = Math.ceil(height / 4);
+
+      for (let by = 0; by < blocksHigh; by++) {
+        for (let bx = 0; bx < blocksWide; bx++) {
+          const blockOffset = offset + (by * blocksWide + bx) * blockBytes;
+          const alpha = type === 3 ? decodeDxt3Alpha(bytes, blockOffset) : type === 5 ? decodeDxt5Alpha(bytes, blockOffset) : null;
+          const colorOffset = type === 1 ? blockOffset : blockOffset + 8;
+          const colors = buildDxtColors(bytes[colorOffset] | (bytes[colorOffset + 1] << 8), bytes[colorOffset + 2] | (bytes[colorOffset + 3] << 8), type === 1);
+          const codes = bytes[colorOffset + 4] | (bytes[colorOffset + 5] << 8) | (bytes[colorOffset + 6] << 16) | (bytes[colorOffset + 7] << 24);
+
+          for (let py = 0; py < 4; py++) {
+            for (let px = 0; px < 4; px++) {
+              const x = bx * 4 + px;
+              const y = by * 4 + py;
+              if (x >= width || y >= height) continue;
+              const code = (codes >>> (2 * (py * 4 + px))) & 0x03;
+              const color = colors[code];
+              const index = (y * width + x) * 4;
+              rgba[index] = color[0];
+              rgba[index + 1] = color[1];
+              rgba[index + 2] = color[2];
+              rgba[index + 3] = alpha ? alpha[py * 4 + px] : color[3];
+            }
+          }
+        }
+      }
+    }
+
+    function buildDxtColors(c0, c1, allowTransparent) {
+      const a = rgb565(c0);
+      const b = rgb565(c1);
+      const colors = [
+        [a[0], a[1], a[2], 255],
+        [b[0], b[1], b[2], 255]
+      ];
+      if (c0 > c1 || !allowTransparent) {
+        colors.push([
+          Math.round((2 * a[0] + b[0]) / 3),
+          Math.round((2 * a[1] + b[1]) / 3),
+          Math.round((2 * a[2] + b[2]) / 3),
+          255
+        ]);
+        colors.push([
+          Math.round((a[0] + 2 * b[0]) / 3),
+          Math.round((a[1] + 2 * b[1]) / 3),
+          Math.round((a[2] + 2 * b[2]) / 3),
+          255
+        ]);
+      } else {
+        colors.push([
+          Math.round((a[0] + b[0]) / 2),
+          Math.round((a[1] + b[1]) / 2),
+          Math.round((a[2] + b[2]) / 2),
+          255
+        ]);
+        colors.push([0, 0, 0, 0]);
+      }
+      return colors;
+    }
+
+    function decodeDxt3Alpha(bytes, offset) {
+      const alpha = new Uint8ClampedArray(16);
+      for (let i = 0; i < 8; i++) {
+        const value = bytes[offset + i];
+        alpha[i * 2] = (value & 0x0f) * 17;
+        alpha[i * 2 + 1] = ((value >> 4) & 0x0f) * 17;
+      }
+      return alpha;
+    }
+
+    function decodeDxt5Alpha(bytes, offset) {
+      const a0 = bytes[offset];
+      const a1 = bytes[offset + 1];
+      const table = [a0, a1];
+      if (a0 > a1) {
+        for (let i = 1; i <= 6; i++) table.push(Math.round(((7 - i) * a0 + i * a1) / 7));
+      } else {
+        for (let i = 1; i <= 4; i++) table.push(Math.round(((5 - i) * a0 + i * a1) / 5));
+        table.push(0, 255);
+      }
+
+      let bits = 0n;
+      for (let i = 0; i < 6; i++) bits |= BigInt(bytes[offset + 2 + i]) << BigInt(8 * i);
+
+      const alpha = new Uint8ClampedArray(16);
+      for (let i = 0; i < 16; i++) {
+        alpha[i] = table[Number((bits >> BigInt(3 * i)) & 0x07n)];
+      }
+      return alpha;
+    }
+
+    function encodeDds(canvas) {
+      const width = canvas.width;
+      const height = canvas.height;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      const rgba = ctx.getImageData(0, 0, width, height).data;
+      const pitch = width * 4;
+      const out = new Uint8Array(128 + rgba.length);
+      const view = new DataView(out.buffer);
+
+      view.setUint32(0, 0x20534444, true);
+      view.setUint32(4, 124, true);
+      view.setUint32(8, 0x0002100f, true);
+      view.setUint32(12, height, true);
+      view.setUint32(16, width, true);
+      view.setUint32(20, pitch, true);
+      view.setUint32(28, 1, true);
+      view.setUint32(76, 32, true);
+      view.setUint32(80, 0x41, true);
+      view.setUint32(88, 32, true);
+      view.setUint32(92, 0x00ff0000, true);
+      view.setUint32(96, 0x0000ff00, true);
+      view.setUint32(100, 0x000000ff, true);
+      view.setUint32(104, 0xff000000, true);
+      view.setUint32(108, 0x1000, true);
+
+      let offset = 128;
+      for (let i = 0; i < rgba.length; i += 4) {
+        out[offset++] = rgba[i + 2];
+        out[offset++] = rgba[i + 1];
+        out[offset++] = rgba[i];
+        out[offset++] = rgba[i + 3];
+      }
+      return out.buffer;
+    }
+
+    function encodeBmp(canvas) {
+      const width = canvas.width;
+      const height = canvas.height;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      const rgba = ctx.getImageData(0, 0, width, height).data;
+      const rowStride = Math.ceil((width * 3) / 4) * 4;
+      const pixelSize = rowStride * height;
+      const out = new Uint8Array(54 + pixelSize);
+      const view = new DataView(out.buffer);
+
+      out[0] = 0x42;
+      out[1] = 0x4d;
+      view.setUint32(2, out.length, true);
+      view.setUint32(10, 54, true);
+      view.setUint32(14, 40, true);
+      view.setInt32(18, width, true);
+      view.setInt32(22, height, true);
+      view.setUint16(26, 1, true);
+      view.setUint16(28, 24, true);
+      view.setUint32(34, pixelSize, true);
+
+      let offset = 54;
+      for (let y = height - 1; y >= 0; y--) {
+        const rowStart = offset;
+        for (let x = 0; x < width; x++) {
+          const i = (y * width + x) * 4;
+          out[offset++] = rgba[i + 2];
+          out[offset++] = rgba[i + 1];
+          out[offset++] = rgba[i];
+        }
+        offset = rowStart + rowStride;
+      }
+      return out.buffer;
+    }
+
+    function imageDataToCanvas(rgba, width, height) {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      ctx.putImageData(new ImageData(rgba, width, height), 0, 0);
+      return { canvas, width, height };
+    }
+
+    function canvasToPreviewUrl(canvas) {
+      const preview = document.createElement('canvas');
+      const max = 180;
+      const ratio = Math.min(1, max / Math.max(canvas.width, canvas.height));
+      preview.width = Math.max(1, Math.round(canvas.width * ratio));
+      preview.height = Math.max(1, Math.round(canvas.height * ratio));
+      const ctx = preview.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(canvas, 0, 0, preview.width, preview.height);
+      return preview.toDataURL('image/png');
+    }
+
+    function rgb565(value) {
+      return [
+        Math.round(((value >> 11) & 0x1f) * 255 / 31),
+        Math.round(((value >> 5) & 0x3f) * 255 / 63),
+        Math.round((value & 0x1f) * 255 / 31)
+      ];
+    }
+
+    function extractMasked(value, mask) {
+      if (!mask) return 0;
+      let shift = 0;
+      while (((mask >>> shift) & 1) === 0 && shift < 32) shift++;
+      let bits = 0;
+      while (((mask >>> (shift + bits)) & 1) === 1 && bits < 32) bits++;
+      const max = (1 << bits) - 1;
+      return Math.round(((value & mask) >>> shift) * 255 / max);
+    }
+
+    function fourCcToString(value) {
+      return String.fromCharCode(
+        value & 0xff,
+        (value >> 8) & 0xff,
+        (value >> 16) & 0xff,
+        (value >> 24) & 0xff
+      ).replace(/\0/g, '');
+    }
+
+    function buildOutputName(name, ext) {
+      const base = name.replace(/\.[^.]+$/, '') || 'image';
+      return `${base}.${ext}`;
+    }
+
+    function getExtension(name) {
+      return (name.split('.').pop() || '').toLowerCase();
+    }
+
+    function formatBytes(bytes) {
+      if (!bytes) return '0 B';
+      const units = ['B', 'KB', 'MB', 'GB'];
+      const index = Math.min(units.length - 1, Math.floor(Math.log(bytes) / Math.log(1024)));
+      return `${(bytes / Math.pow(1024, index)).toFixed(index ? 1 : 0)} ${units[index]}`;
+    }
+
+    function render() {
+      const total = state.items.length;
+      const done = state.items.filter(item => item.status === 'done').length;
+      const errors = state.items.filter(item => item.status === 'error').length;
+      els.totalCount.textContent = total;
+      els.doneCount.textContent = done;
+      els.errorCount.textContent = errors;
+      els.clearButton.disabled = total === 0;
+      els.convertButton.disabled = total === 0 || state.items.every(item => item.status === 'error');
+      els.downloadAllButton.disabled = done === 0;
+
+      if (!total) {
+        els.fileList.innerHTML = '<div class="empty">尚未加入圖片。</div>';
+        return;
+      }
+
+      els.fileList.innerHTML = state.items.map(item => {
+        const dims = item.width && item.height ? `${item.width} x ${item.height}` : '讀取中';
+        const output = item.outputSize ? `輸出 ${formatBytes(item.outputSize)}` : `來源 ${formatBytes(item.file.size)}`;
+        const progressWidth = item.status === 'converting' || item.status === 'loading' ? item.progress : item.status === 'done' ? 100 : 0;
+        const statusClass = item.status === 'error' ? 'status error' : 'status';
+        const download = item.outputUrl
+          ? `<a class="download-link" href="${item.outputUrl}" download="${escapeHtml(item.outputName)}">下載</a>`
+          : '';
+        return `
+          <article class="file-row" data-id="${item.id}">
+            <div class="thumb">${item.previewUrl ? `<img src="${item.previewUrl}" alt="">` : 'IMG'}</div>
+            <div class="file-main">
+              <div class="file-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
+              <div class="meta">
+                <span class="pill">${escapeHtml(getExtension(item.name).toUpperCase() || 'IMAGE')}</span>
+                <span>${dims}</span>
+                <span>${output}</span>
+              </div>
+              <div class="${statusClass}">${escapeHtml(item.message)}</div>
+              <div class="progress" aria-hidden="true"><span style="width:${progressWidth}%"></span></div>
+            </div>
+            <div class="row-actions">
+              ${download}
+              <button class="icon-button remove-button" type="button" aria-label="移除 ${escapeHtml(item.name)}" data-id="${item.id}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v5"></path><path d="M14 11v5"></path>
+                </svg>
+              </button>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      document.querySelectorAll('.remove-button').forEach(button => {
+        button.addEventListener('click', () => removeItem(Number(button.dataset.id)));
+      });
+    }
+
+    function removeItem(id) {
+      const index = state.items.findIndex(item => item.id === id);
+      if (index === -1) return;
+      revokeItemUrls(state.items[index]);
+      state.items.splice(index, 1);
+      render();
+    }
+
+    function revokeItemUrls(item) {
+      revokeOutputUrl(item);
+    }
+
+    function revokeOutputUrl(item) {
+      if (item.outputUrl) URL.revokeObjectURL(item.outputUrl);
+      item.outputUrl = '';
+      item.outputName = '';
+      item.outputSize = 0;
+    }
+
+    function triggerDownload(url, filename) {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.append(a);
+      a.click();
+      a.remove();
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[char]);
+    }
+
+    render();
+  </script>
+</body>
+</html>
